@@ -15,10 +15,10 @@ object TodoRepository {
   case object TodoNotFound extends Throwable
 }
 
-class InMemoryTodoRepository(implicit ec: ExecutionContext) extends TodoRepository {
+class InMemoryTodoRepository(initialTodos: Seq[Todo] = Seq.empty)(implicit ec: ExecutionContext) extends TodoRepository {
   import TodoRepository._
 
-  private var todos: Vector[Todo] = Vector.empty
+  private var todos: Vector[Todo] = initialTodos.toVector
 
   override def save(createTodo: CreateTodo): Future[Todo] = Future {
     val id = UUID.randomUUID().toString

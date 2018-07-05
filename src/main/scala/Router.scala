@@ -1,15 +1,24 @@
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 
 trait Router {
   def route: Route
 }
 
 class TodoRouter(todoRepository: TodoRepository) extends Router with CustomDirectives {
+  import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
   import io.circe.generic.auto._
 
   def route: Route = pathPrefix("todos") {
-    get {
+    path("done") {
+      handleFailureWithDefault(todoRepository.done()) { todos =>
+        complete(todos)
+      }
+    } ~ path("pending") {
+      handleFailureWithDefault(todoRepository.pending()) { todos =>
+        complete(todos)
+      }
+    } ~ get {
       handleFailureWithDefault(todoRepository.all()) { todos =>
         complete(todos)
       }
@@ -21,26 +30,18 @@ class TodoRouter(todoRepository: TodoRepository) extends Router with CustomDirec
           }
         }
       }
-    } ~ path("done") {
-      handleFailureWithDefault(todoRepository.done()) { todos =>
-        complete(todos)
-      }
-    } ~ path("pending") {
-      handleFailureWithDefault(todoRepository.pending()) { todos =>
-        complete(todos)
-      }
     } ~ path(Segment) { id =>
       put {
         entity(as[UpdateTodo]) { updateTodo =>
           validateTodo(updateTodo) {
-            handleFailureWithNotFound(todoRepository.update(id, updateTodo)) { todo =>
-              complete(todo)
+            handleFailureWithNotFound(todoRepository.update(id, updateTodo)) { _ =>
+              complete(StatusCodes.OK)
             }
           }
         }
       } ~ delete {
-        handleFailureWithNotFound(todoRepository.delete(id)) { todo =>
-          complete(todo)
+        handleFailureWithNotFound(todoRepository.delete(id)) { _ =>
+          complete(StatusCodes.OK)
         }
       }
     }
