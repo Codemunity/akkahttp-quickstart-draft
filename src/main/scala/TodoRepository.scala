@@ -3,9 +3,6 @@ import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 trait TodoRepository {
-
-  case object TodoNotFound extends Throwable
-
   def save(createTodo: CreateTodo): Future[Todo]
   def update(id: String, updateTodo: UpdateTodo): Future[Unit]
   def delete(id: String): Future[Unit]
@@ -14,7 +11,12 @@ trait TodoRepository {
   def pending(): Future[Seq[Todo]]
 }
 
+object TodoRepository {
+  case object TodoNotFound extends Throwable
+}
+
 class InMemoryTodoRepository(implicit ec: ExecutionContext) extends TodoRepository {
+  import TodoRepository._
 
   private var todos: Vector[Todo] = Vector.empty
 

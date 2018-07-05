@@ -1,3 +1,4 @@
+import TodoRepository.TodoNotFound
 import TodoValidator.{Invalid, Valid}
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCodes
@@ -30,4 +31,8 @@ trait CustomDirectives extends Directives {
       case _ => ApiError.generic
     }
 
+  def handleFailureWithNotFound[T]: Future[T] => Directive1[T] =
+    handleFailure[T] {
+      case TodoNotFound => ApiError.todoNotFound
+    }
 }

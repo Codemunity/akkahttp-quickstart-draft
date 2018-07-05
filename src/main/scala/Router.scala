@@ -5,7 +5,6 @@ trait Router {
   def route: Route
 }
 
-// TODO: Handle failures and respond accordingly
 class TodoRouter(todoRepository: TodoRepository) extends Router with CustomDirectives {
   import io.circe.generic.auto._
 
@@ -34,15 +33,17 @@ class TodoRouter(todoRepository: TodoRepository) extends Router with CustomDirec
       put {
         entity(as[UpdateTodo]) { updateTodo =>
           validateTodo(updateTodo) {
-            complete(todoRepository.update(id, updateTodo))
+            handleFailureWithNotFound(todoRepository.update(id, updateTodo)) { todo =>
+              complete(todo)
+            }
           }
         }
       } ~ delete {
-        complete(todoRepository.delete(id))
+        handleFailureWithNotFound(todoRepository.delete(id)) { todo =>
+          complete(todo)
+        }
       }
     }
   }
 
-
 }
-
