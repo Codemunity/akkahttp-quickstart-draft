@@ -36,7 +36,6 @@ class TodoRouterListSpec extends WordSpec with Matchers with ScalatestRouteTest 
       Get("/todos/done") ~> router.route ~> check {
         status shouldBe StatusCodes.OK
         val respTodos = responseAs[Seq[Todo]]
-        println(respTodos)
         respTodos shouldBe todos.filter(_.done)
       }
     }

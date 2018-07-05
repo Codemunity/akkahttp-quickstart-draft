@@ -18,7 +18,8 @@ trait CustomDirectives extends Directives {
   def handleFailure[T]
     (e: PartialFunction[Throwable, ApiError])
     (f: => Future[T]): Directive1[T] = onComplete(f) flatMap {
-    case Success(t) => provide(t)
+    case Success(t) =>
+      provide(t)
     case Failure(error) =>
       val apiError = e(error)
       complete(apiError.statusCode, apiError.message)

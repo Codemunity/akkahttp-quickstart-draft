@@ -20,15 +20,17 @@ class InMemoryTodoRepository(initialTodos: Seq[Todo] = Seq.empty)(implicit ec: E
 
   private var todos: Vector[Todo] = initialTodos.toVector
 
-  override def save(createTodo: CreateTodo): Future[Todo] = Future {
+  override def save(createTodo: CreateTodo): Future[Todo] = Future.successful {
     val id = UUID.randomUUID().toString
     val todo = Todo(id, createTodo.title, createTodo.description, done=false)
     todos = todos :+ todo
     todo
   }
 
-  override def update(id: String, updateTodo: UpdateTodo): Future[Unit] = Future {
-    if (!todos.exists(_.id == id)) Future.failed(TodoNotFound)
+  override def update(id: String, updateTodo: UpdateTodo): Future[Unit] =
+    if (!todos.exists(_.id == id)) {
+      Future.failed(TodoNotFound)
+    }
     else {
       todos = todos.map { t =>
         if (t.id == id) {
@@ -37,17 +39,21 @@ class InMemoryTodoRepository(initialTodos: Seq[Todo] = Seq.empty)(implicit ec: E
           t
         }
       }
+      Future.successful()
     }
-  }
 
-  override def delete(id: String): Future[Unit] = Future {
-    if (!todos.exists(_.id == id)) Future.failed(TodoNotFound)
-    else todos = todos.filterNot(_.id == id)
-  }
+  override def delete(id: String): Future[Unit] =
+    if (!todos.exists(_.id == id)) {
+      Future.failed(TodoNotFound)
+    }
+    else {
+      todos = todos.filterNot(_.id == id)
+      Future.successful()
+    }
 
-  override def all(): Future[Seq[Todo]] = Future(todos)
+  override def all(): Future[Seq[Todo]] = Future.successful(todos)
 
-  override def done(): Future[Seq[Todo]] = Future(todos.filter(_.done))
+  override def done(): Future[Seq[Todo]] = Future.successful(todos.filter(_.done))
 
-  override def pending(): Future[Seq[Todo]] = Future(todos.filterNot(_.done))
+  override def pending(): Future[Seq[Todo]] = Future.successful(todos.filterNot(_.done))
 }
